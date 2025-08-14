@@ -11,3 +11,9 @@ APP_PACKAGE = "com.victorysec.va.securities"
 # 登录配置
 TEST_USERNAME = "14012344000"
 TEST_PASSWORD = "Aa111111"
+TRADE_PASSWORD = "113540"
+
+#测试用的股票代码
+VA_CODE = "ETH/USD"
+US_STOCK_CODE = "TIGR"
+HK_STOCK_CODE = "08083"

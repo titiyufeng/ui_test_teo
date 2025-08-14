@@ -3,7 +3,6 @@ from utils.driver_factory import DriverFactory
 from config.settings import APP_PACKAGE, TEST_USERNAME, TEST_PASSWORD
 from pages.base_page import BasePage
 from pages.main_page import MainPage
-from pages.login_page import LoginPage
 import os
 import time
 
@@ -38,16 +37,18 @@ def main_page(driver):
     包含登录状态检查和自动登录功能
     """
     main_page = MainPage(driver)
-    
+
     # 检查登录状态并自动登录（如果需要）
     main_page.perform_login_if_needed(TEST_USERNAME, TEST_PASSWORD)
     # 检查是否有展示发送通知的弹窗，如果有则点击“不允许”
     main_page.handle_notification_request_popup()
-    time.sleep(3)
+    # 检查自选列表是否有完成展示
+    main_page.wait_for_watchlist_visible()
     # 检查是否有展示新股认购弹窗，如果有则关闭新股认购弹窗
     main_page.handle_new_stock_subscription_popup()
+    # 检查是否有展示行情恢复弹窗，如果有则点击恢复行情的按钮
+    main_page.handle_market_recovery_popup()
     return main_page
-
 
 @pytest.fixture(autouse=True)
 def setup_teardown(driver):
@@ -55,10 +56,10 @@ def setup_teardown(driver):
     每个测试用例前后的设置和清理
     """
     # 测试前可以添加前置操作
-    driver
+    driver.app_start(APP_PACKAGE)
     yield
     # 测试后可以添加清理操作
-    driver.press("back")
+    driver.app_stop(APP_PACKAGE)
 
 
 def pytest_runtest_makereport(item, call):
