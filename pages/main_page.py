@@ -7,11 +7,10 @@ from config.settings import TRADE_PASSWORD
 
 class MainPage(BasePage):
     """
-    执行业务用例前的一些检查
+    执行业务用例前的一些检查、一些通用业务操作，例如，切换账户、输入交易密码
     """
     # 元素定位器
     LOGIN_TEXT = ("xpath", "//*[contains(@content-desc, '注册')]")
-    HOME_TITLE = ("xpath", "//android.widget.TextView[@text='首页']")
     NEW_STOCK_SUBSCRIPTION = ("xpath", "//*[@content-desc='今日可认购']")
     NOTIFICATION_REQUEST = ("xpath", "//*[contains(@text, '发送通知')]")
     CLOSE_BUTTON = ("xpath", "//*[@content-desc='今日可认购']/android.widget.ImageView[2]") #新股认购弹窗关闭按钮
@@ -20,7 +19,7 @@ class MainPage(BasePage):
     RECOVERY_BUTTON = ("xpath", "//*[contains(@content-desc, '恢复行情')]")  # 恢复行情按钮
     WATCHLIST_ELEMENT_HK = ("xpath", "//*[contains(@content-desc, 'HK')]")  # 自选列表HK元素
     WATCHLIST_ELEMENT_US = ("xpath", "//*[contains(@content-desc, 'US')]")  # 自选列表US元素
-    TRADE_PASSWORD_INPUT = ("xpath", "//*[@content-desc='完成']")  # 交易密码输入框
+    BUY_INPUT = ("xpath", "//*[@content-desc='买入']")  # 下单页买入按钮
     SWITCH_ACCOUNT_BUTTON = ("xpath", "//*[contains(@content-desc,'账户')]")  # 切换账户按钮
     
     def is_logged_in(self):
@@ -50,7 +49,7 @@ class MainPage(BasePage):
                 return True
             time.sleep(1)
         logging.warning("等待主页面超时")
-        return False
+        raise "等待主页面超时"
     
     def perform_login_if_needed(self, username, password):
         """
@@ -85,7 +84,7 @@ class MainPage(BasePage):
                 return True
             except Exception as e:
                 logging.error(f"关闭新股认购弹窗时发生错误: {e}")
-                return False
+                raise f"关闭新股认购弹窗时发生错误: {e}"
         else:
             logging.info("未检测到新股认购弹窗")
             return False
@@ -107,7 +106,7 @@ class MainPage(BasePage):
                 return True
             except Exception as e:
                 logging.error(f"处理发送通知权限请求时发生错误: {e}")
-                return False
+                raise f"处理发送通知权限请求时发生错误: {e}"
         else:
             logging.info("未检测到发送通知权限请求弹窗")
             return False
@@ -129,7 +128,7 @@ class MainPage(BasePage):
                 return True
             except Exception as e:
                 logging.error(f"处理行情恢复弹窗时发生错误: {e}")
-                return False
+                raise f"处理行情恢复弹窗时发生错误: {e}"
         else:
             logging.info("未检测到行情恢复弹窗")
             return False
@@ -151,7 +150,7 @@ class MainPage(BasePage):
                 return True
             time.sleep(1)
         logging.warning(f"等待自选列表展示超时，未能检测到HK或US元素")
-        return False
+        raise "自选列表加载超时"
         
     def handle_trade_password_input(self):
         """
@@ -160,7 +159,7 @@ class MainPage(BasePage):
         :return: bool 是否检测到并处理了交易密码输入框
         """
         logging.info("检查是否有交易密码输入框展示")
-        if self.is_element_visible(self.TRADE_PASSWORD_INPUT):  # 判断是否需要输入交易密码，如果需要则正常输入交易密码，如果不需要则继续输入
+        if not self.is_element_visible(self.BUY_INPUT):  # 判断是否需要输入交易密码，如果需要则正常输入交易密码，如果不需要则继续输入
             time.sleep(1)
             logging.info("检测到交易密码输入框，开始输入交易密码")
             # 输入交易密码
@@ -171,7 +170,7 @@ class MainPage(BasePage):
                 return True
             except Exception as e:
                 logging.error(f"输入交易密码时发生错误: {e}")
-                return False
+                raise f"输入交易密码时发生错误: {e}"
         else:
             logging.info("未检测到交易密码输入框")
             return True
@@ -186,13 +185,13 @@ class MainPage(BasePage):
             self.click_element(("xpath","//*[@content-desc='交易']"))
             self.wait_and_click_element(("xpath","//*[contains(@content-desc,'账户')]"))
             if account_type == "VA":
-                self.wait_and_click_element(("xpath","//*[@content-desc='虚拟资产账户\nVATEST02']"))
+                self.wait_and_click_element(("xpath","//*[contains(@content-desc,'虚拟资产账户')]"))
                 logging.info("切换到VA账户成功")
             else:
-                self.wait_and_click_element(("xpath","//*[@content-desc='证券现金账户\nTEST02']"))
+                self.wait_and_click_element(("xpath","//*[contains(@content-desc,'证券现金账户')]"))
                 logging.info("切换到证券账户成功")
             self.click_element(("xpath","//*[@content-desc='胜利']"))
             return True
         except Exception as e:
             logging.error(f"切换账户时发生错误: {e}")
-            return False
+            raise f"切换账户时发生错误: {e}"

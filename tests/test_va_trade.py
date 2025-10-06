@@ -9,15 +9,16 @@ class TestVaTrade:
         logging.info("开始执行买入限价单测试")
         try:
             main_page.swich_account("VA")
-            main_page.click_element(("xpath", "//*[contains(@content-desc,'股票代码')]"))#点击顶部搜索框
+            main_page.driver(className="android.widget.ImageView")[0].click()#点击顶部搜索框
             main_page.input_text(("xpath", "//android.widget.EditText"), VA_CODE)#输入搜索内容
             main_page.wait_and_click_element(("xpath", f"//*[@content-desc='{VA_CODE}\nHK\nHashKey']"))#等待搜索结果出现后，并点击
-            main_page.wait_and_click_element(("xpath", "//*[@content-desc='交易']"))#等待进入个股页后，并点击交易按钮
+            main_page.wait_for_element_visible(("xpath", "//*[contains(@content-desc,'报价')]"))  # 等待进入个股页后
+            main_page.click_element(("xpath", "//*[@content-desc='交易']"))
             time.sleep(0.5)
             main_page.handle_trade_password_input()#输入交易密码
             main_page.wait_for_element_visible(("xpath", "//*[@content-desc='最新价']"))
             main_page.wait_for_element_visible(("xpath", "//*[@content-desc='买入']"))
-            time.sleep(3)
+            time.sleep(2)
             #获取最新价
             elm_new_price = main_page.find_element(("xpath", "//*[@content-desc='最新价']/following-sibling::*[1]"))
             new_price = float(elm_new_price.info["contentDescription"].split(" ")[0])
@@ -55,10 +56,11 @@ class TestVaTrade:
 
             #撤单
             main_page.click_element(("xpath", "//*[contains(@content-desc,'今日订单')]"))
+            time.sleep(1)
             main_page.click_element(("xpath", "//*[contains(@content-desc,'状态')]/following-sibling::*[1]"))
             main_page.wait_and_click_element(("xpath", "//*[@content-desc='撤单']"))
             main_page.wait_and_click_element(("xpath", "//*[@content-desc='确认']"))
-            time.sleep(1.5)
+            time.sleep(3)
             description = main_page.get_description(("xpath", "//*[contains(@content-desc,'HK')]"))
             assert "已撤销" in description, "撤单失败"
             logging.info("撤单成功")
@@ -72,10 +74,11 @@ class TestVaTrade:
         logging.info("开始执行卖出限价单测试")
         try:
             main_page.swich_account("VA")
-            main_page.click_element(("xpath", "//*[contains(@content-desc,'股票代码')]"))  # 点击顶部搜索框
+            main_page.driver(className="android.widget.ImageView")[0].click()  # 点击顶部搜索框
             main_page.input_text(("xpath", "//android.widget.EditText"), VA_CODE)  # 输入搜索内容
             main_page.wait_and_click_element(("xpath", f"//*[@content-desc='{VA_CODE}\nHK\nHashKey']"))  # 等待搜索结果出现后，并点击
-            main_page.wait_and_click_element(("xpath", "//*[@content-desc='交易']"))  # 等待进入个股页后，并点击交易按钮
+            main_page.wait_for_element_visible(("xpath", "//*[contains(@content-desc,'报价')]"))  # 等待进入个股页后
+            main_page.click_element(("xpath", "//*[@content-desc='交易']"))
             time.sleep(0.5)
             main_page.handle_trade_password_input()  # 输入交易密码
             main_page.wait_for_element_visible(("xpath", "//*[@content-desc='最新价']"))
@@ -118,10 +121,11 @@ class TestVaTrade:
 
             # 撤单
             main_page.click_element(("xpath", "//*[contains(@content-desc,'今日订单')]"))
+            time.sleep(1)
             main_page.click_element(("xpath", "//*[contains(@content-desc,'状态')]/following-sibling::*[1]"))
             main_page.wait_and_click_element(("xpath", "//*[@content-desc='撤单']"))
             main_page.wait_and_click_element(("xpath", "//*[@content-desc='确认']"))
-            time.sleep(1.5)
+            time.sleep(3)
             description = main_page.get_description(("xpath", "//*[contains(@content-desc,'HK')]"))
             assert "已撤销" in description, "撤单失败"
             logging.info("撤单成功")

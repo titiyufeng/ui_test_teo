@@ -3,8 +3,20 @@ from utils.driver_factory import DriverFactory
 from config.settings import APP_PACKAGE, TEST_USERNAME, TEST_PASSWORD
 from pages.base_page import BasePage
 from pages.main_page import MainPage
+from pages.login_page import LoginPage
+from utils.feishu_notifier import FeishuNotifier
 import os
 import time
+import logging
+
+
+# 存储测试结果的全局变量
+test_results = {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "failed_details": []
+}
 
 
 @pytest.fixture(scope="session")
@@ -37,18 +49,20 @@ def main_page(driver):
     包含登录状态检查和自动登录功能
     """
     main_page = MainPage(driver)
-
+    
     # 检查登录状态并自动登录（如果需要）
     main_page.perform_login_if_needed(TEST_USERNAME, TEST_PASSWORD)
     # 检查是否有展示发送通知的弹窗，如果有则点击“不允许”
     main_page.handle_notification_request_popup()
     # 检查自选列表是否有完成展示
     main_page.wait_for_watchlist_visible()
+    time.sleep(3)
     # 检查是否有展示新股认购弹窗，如果有则关闭新股认购弹窗
     main_page.handle_new_stock_subscription_popup()
     # 检查是否有展示行情恢复弹窗，如果有则点击恢复行情的按钮
     main_page.handle_market_recovery_popup()
     return main_page
+
 
 @pytest.fixture(autouse=True)
 def setup_teardown(driver):
@@ -112,3 +126,41 @@ def pytest_runtest_makereport(item, call):
                 print(f"\n测试失败截图已保存到: {screenshot_path}")
             except Exception as e:
                 print(f"\n截图保存失败: {e}")
+
+
+def pytest_runtest_logreport(report):
+    """
+    收集测试结果信息
+    """
+    if report.when == "call":
+        test_results["total"] += 1
+        if report.passed:
+            test_results["passed"] += 1
+        elif report.failed:
+            test_results["failed"] += 1
+            # 记录失败用例的详细信息
+            test_results["failed_details"].append(report.nodeid)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    测试会话结束后发送测试结果到飞书群
+    """
+    # 飞书机器人的webhook地址
+    webhook_url = "https://open.larksuite.com/open-apis/bot/v2/hook/99cc5ce3-53bf-4970-a356-8b2ccb49b505"
+    
+    # 创建飞书通知器实例
+    notifier = FeishuNotifier(webhook_url)
+    
+    # 发送测试结果
+    success = notifier.send_test_result(
+        total_cases=test_results["total"],
+        passed_cases=test_results["passed"],
+        failed_cases=test_results["failed"],
+        failed_case_details=test_results["failed_details"]
+    )
+    
+    if success:
+        print("\n测试结果已成功发送到飞书群")
+    else:
+        print("\n发送测试结果到飞书群失败")

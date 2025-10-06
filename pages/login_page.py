@@ -17,6 +17,7 @@ class LoginPage(BasePage):
             self.click_element(("xpath", "//*[@content-desc='登录']"))  # 点击登录按钮
         except Exception as e:
             logging.info(f"登录失败")
+            raise "登录失败"
         
         # 等待登录过程完成
         time.sleep(3)

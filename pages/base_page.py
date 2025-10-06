@@ -82,8 +82,8 @@ class BasePage:
                 logging.info(f"检测到元素 {locator}，继续执行后续操作")
                 return True
             time.sleep(1)
-        logging.warning(f"等待元素 {locator} 超时，停止执行后续操作")
-        return False
+        logging.warning(f"等待元素 {locator} 可见超时，未能执行点击操作")
+        raise f"等待元素 {locator} 可见超时，未能执行点击操作"
 
     def wait_and_click_element(self, locator, timeout=15):
         """
@@ -98,4 +98,4 @@ class BasePage:
             return True
         else:
             logging.warning(f"等待元素 {locator} 可见超时，未能执行点击操作")
-            return False
+            raise f"等待元素 {locator} 可见超时，未能执行点击操作"
